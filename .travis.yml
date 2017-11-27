@@ -1,0 +1,23 @@
+sudo: required
+
+language: generic
+
+services:
+  - docker
+
+env:
+  global:
+    - REPO=lzane/ubuntu-opencv3 
+    - COMMIT=${TRAVIS_COMMIT::8}
+
+before_install:
+  - docker --version 
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
+  - docker build -f Dockerfile -t $REPO:$COMMIT .
+  - docker images  
+
+after_success:
+  - docker tag $REPO:$COMMIT $REPO:$TAG
+  - docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
+  - docker push $REPO
